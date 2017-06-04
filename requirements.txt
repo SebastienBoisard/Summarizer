@@ -1,0 +1,4 @@
+tensorflow==1.1.0
+nltk==3.2.4
+numpy==1.12.1
+pyrouge==0.1.3
