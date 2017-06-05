@@ -1,12 +1,14 @@
 import os
 import urllib.request
 import tarfile
+import collections
 from nltk.tokenize import word_tokenize
+import tensorflow as tf
 
 # List of tokens that are acceptable ways to end a sentence
 END_TOKENS = ['.', '!', '?', '...', "'", "`", '"', ")",
-              u'\u2019', # single close quote
-              u'\u201d', # dm_double_close_quote
+              u'\u2019',  # single close quote
+              u'\u201d',  # dm_double_close_quote
               ]
 
 SENTENCE_START = '<s>'
@@ -101,6 +103,27 @@ def extract_article_and_abstract(story_buf):
     return article, abstract
 
 
+def get_tokens_from_article_and_abstract(article, abstract):
+    # Get tokens from the article string
+    article_tokens = article.split(' ')
+
+    # Get tokens from the abstract string
+    abstract_tokens = abstract.split(' ')
+
+    # Remove start and end sentence tokens
+    abstract_tokens = [t for t in abstract_tokens if t not in [SENTENCE_START, SENTENCE_END]]
+
+    tokens = article_tokens + abstract_tokens
+
+    # Strip tokens from leading spaces
+    tokens = [t.strip() for t in tokens]
+
+    # Remove empty tokens
+    tokens = [t for t in tokens if t != ""]  # remove empty
+
+    return tokens
+
+
 def main():
 
     # cnn_url = "https://drive.google.com/uc?export=download&confirm=1E-H&id=0BwmD_VLjROrfTHk4NFg2SndKcjQ"
@@ -117,6 +140,13 @@ def main():
     # Open tarfile
     tar = tarfile.open(mode="r:gz", name=test_folder+test_filename)
 
+    # Prepare to count each token in the dataset (vocab_counter['token_label']=token_count)
+    vocab_counter = collections.Counter()
+
+    output_file = test_folder+"output.bin"
+
+    writer = tf.python_io.TFRecordWriter(output_file)
+
     # Iterate over every member
     for idx, tar_filename in enumerate(tar.getnames()):
         # Print contents of every file
@@ -132,6 +162,25 @@ def main():
         print("article=", article)
         print("abstract=", abstract)
 
+        # Construct the Example proto object
+        example = tf.train.Example(
+            # Example contains a Features proto object
+            features=tf.train.Features(
+                # Features contains a map of string to Feature proto objects
+                feature={
+                    # A Feature contains one of either a int64_list,
+                    # float_list, or bytes_list
+                    'article': tf.train.Feature(bytes_list=tf.train.BytesList(value=[str.encode(article)])),
+                    'abstract': tf.train.Feature(bytes_list=tf.train.BytesList(value=[str.encode(abstract)])),
+                }))
+        # Use the proto object to serialize the example to a string
+        serialized = example.SerializeToString()
+
+        # Write the serialized object to disk
+        writer.write(serialized)
+
+        tokens = get_tokens_from_article_and_abstract(article, abstract)
+        vocab_counter.update(tokens)
 
 if __name__ == '__main__':
     main()
