@@ -124,6 +124,24 @@ def get_tokens_from_article_and_abstract(article, abstract):
     return tokens
 
 
+def transform_article_and_abstract_to_serialized_tf_example(article, abstract):
+    # Construct the Example proto object
+    example = tf.train.Example(
+        # Example contains a Features proto object
+        features=tf.train.Features(
+            # Features contains a map of string to Feature proto objects
+            feature={
+                # A Feature contains one of either a int64_list,
+                # float_list, or bytes_list
+                'article': tf.train.Feature(bytes_list=tf.train.BytesList(value=[str.encode(article)])),
+                'abstract': tf.train.Feature(bytes_list=tf.train.BytesList(value=[str.encode(abstract)])),
+            }))
+    # Use the proto object to serialize the example to a string
+    serialized = example.SerializeToString()
+
+    return serialized
+
+
 def main():
 
     # cnn_url = "https://drive.google.com/uc?export=download&confirm=1E-H&id=0BwmD_VLjROrfTHk4NFg2SndKcjQ"
@@ -159,28 +177,15 @@ def main():
             break
 
         article, abstract = extract_article_and_abstract(buf)
-        print("article=", article)
-        print("abstract=", abstract)
 
-        # Construct the Example proto object
-        example = tf.train.Example(
-            # Example contains a Features proto object
-            features=tf.train.Features(
-                # Features contains a map of string to Feature proto objects
-                feature={
-                    # A Feature contains one of either a int64_list,
-                    # float_list, or bytes_list
-                    'article': tf.train.Feature(bytes_list=tf.train.BytesList(value=[str.encode(article)])),
-                    'abstract': tf.train.Feature(bytes_list=tf.train.BytesList(value=[str.encode(abstract)])),
-                }))
-        # Use the proto object to serialize the example to a string
-        serialized = example.SerializeToString()
+        serialized_tf_example = transform_article_and_abstract_to_serialized_tf_example(article, abstract)
 
         # Write the serialized object to disk
-        writer.write(serialized)
+        writer.write(serialized_tf_example)
 
         tokens = get_tokens_from_article_and_abstract(article, abstract)
         vocab_counter.update(tokens)
+
 
 if __name__ == '__main__':
     main()
