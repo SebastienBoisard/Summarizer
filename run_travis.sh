@@ -4,4 +4,4 @@
 python3.5 -m nltk.downloader punkt
 
 # Run the unit tests
-python3.5 prepare_data_test.py
+python3.5 test_prepare_data.py
