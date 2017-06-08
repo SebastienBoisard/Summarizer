@@ -83,8 +83,7 @@ def extract_article_and_abstract(story_buf):
     article_lines = []
     highlights = []
     next_is_highlight = False
-    for idx, line in enumerate(lines):
-        # print("line[{}]={}".format(idx, line))
+    for line in lines:
         if line == "":
             continue  # empty line
         elif line.startswith("@ highlight"):
