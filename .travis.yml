@@ -5,6 +5,8 @@ python:
 install:
  - pip install -r requirements.txt
  - pip install coveralls
-script: sh run_travis.sh
+script:
+  sh run_travis.sh
+  coverage run test_prepare_data.py
 after_success:
   coveralls
