@@ -19,17 +19,17 @@ class Vocabulary(object):
         for line in vocab_stream:
             pieces = line.split()
             if len(pieces) != 2:
-                logging.warning('Wrong line format: %', line)
+                logging.warning('Wrong line format: %s', line)
                 continue
             if pieces[0] in self._word_to_id:
-                logging.warning('Duplicated word: %', pieces[0])
+                logging.warning('Duplicated word: %s', pieces[0])
                 continue
             self._word_to_id[pieces[0]] = self._vocab_size
             self._id_to_word[self._vocab_size] = pieces[0]
             self._vocab_size += 1
 
         if self._vocab_size > vocab_max_size:
-            logging.warning('Too many words in vocab file, loaded only % words', vocab_max_size)
+            logging.warning('Too many words in vocab file, loaded only %d words', vocab_max_size)
 
     def get_word_id(self, word):
         if word not in self._word_to_id:
@@ -38,7 +38,7 @@ class Vocabulary(object):
 
     def get_word(self, word_id):
         if word_id not in self._id_to_word:
-            raise ValueError('Vocab with id % not found', word_id)
+            raise ValueError('Vocab with id {} not found'.format(word_id))
         return self._id_to_word[word_id]
 
     def get_vocab_size(self):
