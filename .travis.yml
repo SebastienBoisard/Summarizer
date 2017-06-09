@@ -3,11 +3,11 @@ language: python
 python:
  - "3.5"
 install:
- - pip install -r requirements.txt
+ - pip install pytest pytest-cov pytest-pep8
  - pip install coveralls
+ - pip install -r requirements.txt
+ - python3.5 -m nltk.downloader punkt # Install the data needed by NLTK to tokenize
 script:
- - sh run_travis.sh
- - coverage run test_prepare_data.py
- - coverage run test_vocabulary.py
+ - py.test
 after_success:
  - coveralls
